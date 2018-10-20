@@ -17,8 +17,6 @@ class NodesBuilder {
 	 * NodesBuilder is responsible for deleting all references directing to the
 	 * entries not included in the .json files. 
 	 * 
-	 * DEPENDENCY: Google's GSON which is used to I/O .json files.
-	 * 
 	 * */
 	
 	NodesBuilder(int fileNum, int entryPerFile){

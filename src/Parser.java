@@ -17,6 +17,8 @@ class Parser {
 	 * how many types of entries "XXX:XXX" are irrelavant, so I filtered ALL
 	 * entries with character ':' in its title which is very brutal. However,
 	 * it matters little in final PageRank calculation.
+	 *
+	 * DEPENDENCY: Google's GSON which is used to I/O .json files.
 	 * 
 	 * */
 	
@@ -42,7 +44,7 @@ class Parser {
 		 * Only when a page (fenced with <page> and </page>) 
 		 * has a title (fenced with <title> and </title>), is it considered 
 		 * as an entry. 
-		 * Each "[[]]" are a reference link in which the string on the right
+		 * Each "[[]]" are a reference link in which the string on the left 
 		 * of first "|" is the referred link's title.
 		 * All information extraction can be handled by Regular Expression.
 		 * THe first-stage output are stored in a .json file which requires
