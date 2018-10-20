@@ -27,8 +27,7 @@ class Parser {
 	ArrayList<Entry> entrySet;
 	
 	Parser() throws FileNotFoundException{
-		// Construct a .xml parser from a given Wikipedia dump file
-		
+		// construct all Patterns
 		pageHeadPattern = Pattern.compile("<page>");
 		pageEndPattern = Pattern.compile("</page>");
 		titlePattern = Pattern.compile("<title>(.*?)</title>");
@@ -109,8 +108,6 @@ class Parser {
 							keywordMatcher.group(1).indexOf(":") == -1) {
 							String keyword = keywordMatcher.group(1); 
 							//Do I need to add this: .replace("&quot;", "\"");
-							
-							//System.out.println("found reference to: " + keyword);
 							if (foundTitle)
 								entry.addRefer(keyword);
 						}
@@ -134,11 +131,13 @@ class Parser {
 	}
 	
 	void showOutput() {
+		// for debug
 		Gson gson = new Gson();
 		System.out.println(gson.toJson(entrySet));
 	}
 	
 	void saveOutput(String path) throws IOException {
+		// save output to a given path as a .json file
 		Gson gson = new Gson();
 		String str = gson.toJson(entrySet);
 		FileWriter out = new FileWriter(new File(path));
@@ -148,6 +147,10 @@ class Parser {
 	}
 	
 	class Entry{
+		/*
+		 * Entry class has two attributes: title and a List of references
+		 * */
+		
 		String title;
 		ArrayList<String> refer;
 		

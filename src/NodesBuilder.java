@@ -1,7 +1,5 @@
 package src;
 import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import com.google.gson.*;
@@ -14,10 +12,15 @@ class NodesBuilder {
 	Node[] nodes;
 	int fileNum;
 	int entryPerFile;
+	
 	/*
 	 * NodesBuilder is responsible for deleting all references directing to the
 	 * entries not included in the .json files. 
+	 * 
+	 * DEPENDENCY: Google's GSON which is used to I/O .json files.
+	 * 
 	 * */
+	
 	NodesBuilder(int fileNum, int entryPerFile){
 		this.fileNum = fileNum;
 		this.entryPerFile = entryPerFile;
@@ -29,11 +32,12 @@ class NodesBuilder {
 		//NodesBuilder nodesBuilder = new NodesBuilder();
 		//nodesBuilder.readJson(1);
 	}
-	void readJson() throws IOException {
+	void buildNodes() throws IOException {
 		Set<String> dict = new TreeSet<String>();
 		JsonArray[] jsonArray = new JsonArray[fileNum];
 		JsonParser parser = new JsonParser();
 		
+		System.out.println("NodesBuidler: startging reading .json.");
 		int count = 0;
 		for (int i = 0; i < fileNum; i++) {
 			BufferedReader in = new BufferedReader(
@@ -42,61 +46,58 @@ class NodesBuilder {
 			JsonArray array = parser.parse(str).getAsJsonArray();
 			jsonArray[i] = array;
 			for (JsonElement obj: array) {
+				
 				/*
 				 * The obj here has two attributes: title & refer
 				 * title is a String and refer is an Array of String.
 				 * */
-				String title = obj.getAsJsonObject().get("title").getAsString();
+				
+				String title = obj.getAsJsonObject()
+								  .get("title")
+								  .getAsString();
 				if (title.length() == 0) {
+					// sth goes wrong
 					System.out.println("i="+i+":title is null!");
 				}else {
 					dict.add(title);
-					nodes[count] = new Node(title, count, 1.0/fileNum*entryPerFile);
+					nodes[count] = new Node(title, count, 
+							1.0/fileNum*entryPerFile);
 					id2title.put(count, title);
 					title2id.put(title, count);
 					count++;
 				}
 			}
 			in.close();
+			System.out.println("NodesBuidler: reading .json finished " + 
+					(i+1) * 100.0 / fileNum + "%.");
 		}
 		
+		System.out.println(
+			"NodesBuidler: starting filtering irrelvant entries.");
 		for (int i = 0; i < fileNum; i++) {
 			for (JsonElement obj: jsonArray[i]) {
-				JsonArray refers = obj.getAsJsonObject().get("refer").getAsJsonArray();
-				String title = obj.getAsJsonObject().get("title").getAsString();
+				JsonArray refers = obj.getAsJsonObject().
+									   get("refer").
+									   getAsJsonArray();
+				String title = obj.getAsJsonObject().
+								   get("title").
+								   getAsString();
 				for (JsonElement refer: refers) {
 					String r = refer.getAsString();
 					if (dict.contains(r)) {
-						nodes[title2id.get(r)].addIncident(title2id.get(title));
+						/* 
+						 * Only when dict contains the refer, will this refer
+						 * be considered in PageRank.
+						 */
+						int from = title2id.get(title);
+						int to = title2id.get(r);
+						nodes[to].addIncident(from);
+						nodes[from].addExit(to);
 					}
 				}
 			}
+			System.out.println("NodesBuidler: filtering finished " + 
+				(i+1) * 100.0 / fileNum + "%.");
 		}		
-	}
-}
-
-class Node implements Comparable<Node>{
-	String title;
-	int index;
-	double prValue;
-	ArrayList<Integer> incidents;
-	Node(String title, int index, double prValue){
-		this.title = title;
-		this.index = index;
-		this.incidents = new ArrayList<Integer>();
-		this.prValue = prValue;
-	}
-	
-	void addIncident(int index) {
-		incidents.add(index);
-	}
-	double getPrVlaue() {
-		return prValue;
-	}
-	void updataPrValue(double prValue) {
-		this.prValue = prValue;
-	}
-	public int compareTo(Node n) {
-		return this.title.compareTo(n.title);
 	}
 }
